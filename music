@@ -1,0 +1,37 @@
+$nomention
+$onlyIf[$message!=; ❌ هات اسم الأغنية أو الرابط؟]
+
+// تعريف الرابط الأساسي لواجهة برمجة التطبيقات للموسيقى
+$var[replit;http://bdfd-music-api.fungroupes.repl.co:80]
+
+// تشفير الرسالة التي يدخلها المستخدم لتكون قابلة للاستخدام في رابط
+$var[music;$url[encode;$message]]
+
+// الحصول على معرف قناة الصوت التي يتصل بها المستخدم حاليًا
+$httpGet[$var[replit]/voice_channel_id/$guildID/$authorID]
+$var[author;$httpResult[voice_id]]
+
+// تحقق مما إذا كان المستخدم في قناة صوتية
+$onlyIf[$var[author]!=; ❌ يجب أن تكون في قناة صوتية لاستخدام هذا الأمر]
+
+// الحصول على معرف قناة الصوت التي يتصل بها البوت حاليًا
+$httpGet[$var[replit]/voice_channel_id/$guildID/$botID]
+$var[vocbot;$httpResult[voice_id]]
+
+// التحقق مما إذا كان البوت متصل بالفعل بالقناة
+$if[$var[vocbot]==]
+    // الانضمام إلى قناة الصوت التي يتواجد فيها المستخدم
+    $httpPost[$var[replit]/join_voice_channel/$guildID/$botID/$var[author]]
+    // التحقق مما إذا كان البوت انضم بنجاح
+    $httpGet[$var[replit]/voice_channel_id/$guildID/$botID]
+    $var[vocbot;$httpResult[voice_id]]
+    $onlyIf[$var[vocbot]!=; ❌ لم أتمكن من الانضمام إلى القناة الصوتية، تأكد من أن لدي الإذن المناسب.]
+$endif
+
+// البحث وتشغيل الموسيقى المطلوبة
+$httpPost[$var[replit]/search_and_play/$guildID?q=$var[music]]
+
+// تقديم تغذية راجعة بأن الموسيقى أضيفت إلى قائمة الانتظار
+$author[تمت إضافة الموسيقى إلى قائمة الانتظار;$authorAvatar[$authorID]] 
+$title[الموسيقى أضيفت بنجاح]
+$description[تمت إضافة الموسيقى بنجاح بواسطة <@$authorID>]
